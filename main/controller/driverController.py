@@ -7,6 +7,7 @@ import time
 import datetime
 
 import resultController
+from main.utillities.test_tools import Archfee
 
 driver = selenium.webdriver.Chrome()
 class TiendaIdok():
@@ -131,9 +132,68 @@ class TiendaIdok():
         print(df)
     def dropdown_menu(self):
         driver.get(self.url)
-        dropdown_element = driver.find_element(By.XPATH, '//*[@id="default"]/header/div[2]/div/nav/div/ul/li[2]/div')
+        dropdown_element = driver.find_element(By.XPATH,'//*[@id="default"]/header/div[2]/div/nav/div/ul/li[2]/div')
         ActionChains(driver).move_to_element(dropdown_element).perform()
         driver.execute_script("window.scrollBy(0, 100);")
 
-test = TiendaIdok('https://store.idok.cl')
-print(test.banner_click())
+class Archfee():
+    def __init__(self, base_url):
+        self.my_projects_url = base_url+"/my_projects"
+        self.fee_calculator = base_url+"/fee_calculator"
+
+    def login(self,driver):
+        try:
+            driver.find_element(By.XPATH, '//*[@id="details-button"]').click()
+            driver.find_element(By.XPATH, '//*[@id="proceed-link"]').click()
+            driver.find_element(By.XPATH, '//*[@id="user_email"]').send_keys('confirmado1@testing.cl')
+            driver.find_element(By.XPATH, '//*[@id="user_password"]').send_keys('123456')
+            driver.find_element(By.XPATH, '//*[@id="new_user"]/div[4]/input').click()
+        except Exception as e:
+            driver.find_element(By.XPATH, '//*[@id="user_email"]').send_keys('confirmado1@testing.cl')
+            driver.find_element(By.XPATH, '//*[@id="user_password"]').send_keys('123456')
+            driver.find_element(By.XPATH, '//*[@id="new_user"]/div[4]/input').click()
+
+    def create_project(self, button_id, n_of_projects, m2_aprox_projects, name_project):
+        driver.get(self.my_projects_url)
+        self.login(driver)
+        time.sleep(2)
+        try:
+            button = driver.find_element(By.XPATH, f'//*[@id="{button_id}"]')
+            button.click()
+        except Exception as e:
+            print(f"""
+            ERROR: {e}
+            VERIFICAR QUE EL ID SEA CORRECTO: {button_id}
+            """)
+        time.sleep(5)
+        for i in range(n_of_projects):
+            driver.find_element(By.XPATH, '//*[@id="appfee-name-popover-button"]').click()
+            name_input = driver.find_element(By.XPATH, f'//*[@id="appfee-name-popover-input"]')
+            time.sleep(2)
+            try:
+                name_input.send_keys(f"{name_project} {i}")
+            except Exception as e:
+                print(e)
+                time.sleep(2)
+            driver.find_element(By.XPATH,'//*[@id="appfee-location-popover-button"]').click()
+            driver.find_element(By.XPATH,'//*[@id="appfee_location_popover_input"]').click()
+            driver.find_element(By.XPATH,'//*[@id="appfee_location_popover_input"]/optgroup[14]/option[6]').click()
+            driver.find_element(By.XPATH,'//*[@id="project_type_standard_button"]').click()
+            driver.find_element(By.XPATH,'//*[@id="project_type_standard_table"]/tr[3]/td[2]').click()
+            driver.find_element(By.XPATH,'//*[@id="appfee-year"]').click()
+            time.sleep(3)
+            driver.find_element(By.XPATH,'//*[@id="appfee-surface-area-popover-button"]').click()
+            driver.find_element(By.XPATH,'//*[@id="appfee-surface-area-popover-input"]').send_keys(Archfee.m2generator(m2_aprox_projects))
+            driver.find_element(By.XPATH,'//*[@id="project_type_construction_site_visit_button"]').click()
+            driver.find_element(By.XPATH,'//*[@id="project_type_construction_site_visit_table"]/tr[2]/td').click()
+            driver.find_element(By.XPATH,'//*[@id="appfee-surface-area-pricing"]').click()
+            time.sleep(3)
+            driver.find_element(By.XPATH,'//*[@id="appfee-paid-percentage-popover-button"]').click
+            driver.find_element(By.XPATH,'//*[@id="popover128674"]/div[2]/div/table/tbody/tr[1]/td[1]').click
+            time.sleep(1)
+            driver.find_element(By.XPATH,'//*[@id="app-layout"]/div[2]/div[1]/div[2]/div[2]/button[9]').click()
+            time.sleep(3)
+
+test = Archfee("https://ec2-54-71-161-168.us-west-2.compute.amazonaws.com")
+test.create_project("A1C1",5,5000,"Test Project")
+#print(test.banner_click())
